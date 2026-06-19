@@ -105,20 +105,8 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Client-side router navigation utility
-  const navigateTo = (path) => {
-    let target = path;
-    const hasBase = window.location.pathname.startsWith('/geotagjayal');
-    if (hasBase && !path.startsWith('/geotagjayal')) {
-      target = `/geotagjayal${path.startsWith('/') ? path : '/' + path}`;
-    }
-    window.history.pushState({}, '', target);
-    setCurrentPath(target);
-  };
-
   // Determine active route
-  const isAdminPath = currentPath.endsWith('/bharatnet/admin') || currentPath.endsWith('/bharatnet/admin/') || currentPath === '/admin' || currentPath === '/admin/';
-  const isBharatNetPath = currentPath.endsWith('/bharatnet') || currentPath.endsWith('/bharatnet/') || currentPath === '/bharatnet' || currentPath === '/bharatnet/';
+  const isAdminPath = currentPath.endsWith('/admin') || currentPath.endsWith('/admin/');
 
   // Query Dropbox folder to find existing GP submissions
   const checkExistingSubmissions = async (token) => {
@@ -626,11 +614,11 @@ export default function App() {
   // ==========================================
   if (isAdminPath) {
     return (
-      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
+      <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased animate-fade-in">
         <header className="w-full bg-white border-b border-slate-200/80 px-6 py-4 flex justify-between items-center shadow-xs">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigateTo('/')} 
+              onClick={() => window.location.href = '../'} 
               className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               ← Back to Portal
@@ -688,7 +676,7 @@ export default function App() {
             </div>
           ) : (
             /* ADMIN DASHBOARD VIEW */
-            <div className="flex-1 flex flex-col space-y-6">
+            <div className="flex-1 flex flex-col space-y-6 animate-fade-in">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="w-full sm:max-w-md">
                   <div className="relative">
@@ -725,7 +713,7 @@ export default function App() {
               </div>
 
               {isSubmissionsLoading && submissions.length === 0 ? (
-                <div className="my-auto py-16 text-center flex flex-col items-center justify-center space-y-4">
+                <div className="my-auto py-16 text-center flex flex-col items-center justify-center space-y-4 animate-fade-in">
                   <svg className="animate-spin h-10 w-10 text-indigo-600" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
@@ -733,13 +721,13 @@ export default function App() {
                   <p className="text-slate-500 font-medium">Loading geotag entries from cloud storage...</p>
                 </div>
               ) : filteredSubmissions.length === 0 ? (
-                <div className="my-auto py-16 bg-white rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                <div className="my-auto py-16 bg-white rounded-2xl border border-slate-200/60 shadow-sm text-center animate-fade-in">
                   <span className="text-4xl">📂</span>
                   <p className="text-slate-500 font-medium mt-3">No geo-tag submissions found matching search criteria.</p>
                 </div>
               ) : (
                 /* RESPONSIVE DATA TABLE */
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fade-in">
                   <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full border-collapse text-left">
                       <thead>
@@ -847,183 +835,27 @@ export default function App() {
   // ==========================================
   // RENDER BHARATNET CAMERA ROUTE
   // ==========================================
-  if (isBharatNetPath) {
-    if (alreadySubmitted) {
-      return (
-        <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
-          <header className="w-full bg-white border-b border-slate-200/80 py-5 px-6 flex items-center shadow-xs">
-            <button 
-              onClick={() => navigateTo('/')} 
-              className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer mr-auto"
-            >
-              ← Portal
-            </button>
-            <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">BharatNET Geo-Tag</h1>
-          </header>
-          <main className="flex-1 w-full max-w-md mx-auto px-4 py-8 flex flex-col justify-center">
-            <div className="bg-white rounded-2xl p-8 border border-slate-200/60 shadow-xl shadow-slate-100/50 text-center space-y-4 animate-fade-in">
-              <div className="text-5xl">✅</div>
-              <h2 className="text-2xl font-bold text-slate-900">Submission Complete</h2>
-              <p className="text-slate-500 leading-relaxed text-sm">
-                Your geo-tagged photo has been successfully submitted. Duplicate submissions from this device are restricted. Thank you!
-              </p>
-            </div>
-          </main>
-          <footer className="w-full bg-white border-t border-slate-200/80 py-6 text-center text-xs text-slate-500 mt-auto shadow-xs">
-            <div>Developed and Maintained by</div>
-            <div className="font-bold text-slate-800 mt-1">DoIT&C Block Jayal, Nagaur</div>
-          </footer>
-        </div>
-      );
-    }
-
+  if (alreadySubmitted) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
         <header className="w-full bg-white border-b border-slate-200/80 py-5 px-6 flex items-center shadow-xs">
           <button 
-            onClick={() => navigateTo('/')} 
+            onClick={() => window.location.href = '../'} 
             className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer mr-auto"
           >
             ← Portal
           </button>
           <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">BharatNET Geo-Tag</h1>
         </header>
-
         <main className="flex-1 w-full max-w-md mx-auto px-4 py-8 flex flex-col justify-center">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-xl shadow-slate-100/50 space-y-5 animate-fade-in">
-            {/* Form inputs */}
-            <div>
-              <label htmlFor="gpSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gram Panchayat (GP)</label>
-              <select
-                id="gpSelect"
-                value={gp}
-                onChange={(e) => setGp(e.target.value)}
-                disabled={cameraActive || !!previewUrl}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <option value="">-- Select Gram Panchayat --</option>
-                {GP_OPTIONS.map((opt) => {
-                  const isSubmitted = existingGps.has(opt.toLowerCase().trim());
-                  return (
-                    <option key={opt} value={opt} disabled={isSubmitted}>
-                      {opt} {isSubmitted ? '🔒 (Submitted)' : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panchayat Samiti (PS)</label>
-              <input 
-                type="text" 
-                value={ps} 
-                readOnly 
-                className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none" 
-              />
-            </div>
-
-            {/* Action buttons / stream */}
-            {!cameraActive && !previewUrl && (
-              <button 
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-65 disabled:cursor-not-allowed disabled:shadow-none" 
-                onClick={startCameraAndLocation}
-                disabled={isLoading || isGpAlreadySubmitted}
-              >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Accessing Camera & GPS...</span>
-                  </>
-                ) : isGpAlreadySubmitted ? (
-                  '⚠️ GP Already Submitted'
-                ) : (
-                  <>
-                    <span className="text-lg">📷</span>
-                    <span>Start Camera</span>
-                  </>
-                )}
-              </button>
-            )}
-
-            {cameraActive && (
-              <div className="space-y-4 animate-fade-in text-center">
-                <div className="relative rounded-2xl overflow-hidden bg-black border border-slate-800 shadow-inner">
-                  <video ref={videoRef} autoPlay playsInline muted className="w-full aspect-[4/3] object-cover" />
-                </div>
-                <button 
-                  className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl shadow-md shadow-rose-200 hover:shadow-lg hover:shadow-rose-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
-                  onClick={takePhoto}
-                >
-                  <span>📸</span>
-                  <span>Take Photo</span>
-                </button>
-              </div>
-            )}
-
-            {/* Status Display */}
-            {status.text && (
-              <div className={`px-4 py-3 rounded-xl text-xs font-semibold text-center mt-4 border ${
-                status.type === 'primary' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
-                status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                status.type === 'danger' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-                'bg-slate-100 text-slate-600 border-slate-200'
-              }`}>
-                {status.text}
-              </div>
-            )}
-
-            {/* Block Warning for duplicate GP */}
-            {isGpAlreadySubmitted && !previewUrl && !cameraActive && (
-              <div className="px-4 py-3 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl text-xs font-semibold text-center mt-4">
-                ⚠️ A photo has already been submitted for this Gram Panchayat. Duplicate submissions are not allowed.
-              </div>
-            )}
-
-            {/* Photo Preview & Retake / Submit workflow */}
-            {previewUrl && (
-              <div className="space-y-4 animate-scale-in text-center">
-                <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-50">
-                  <img src={previewUrl} alt="Stamped Preview" className="w-full aspect-[4/3] object-cover" />
-                </div>
-                
-                {!isUploading ? (
-                  <div className="flex flex-col gap-3">
-                    <button 
-                      className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
-                      onClick={uploadToDropbox}
-                    >
-                      <span>📤</span>
-                      <span>Submit</span>
-                    </button>
-                    <button 
-                      className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
-                      onClick={startCameraAndLocation}
-                    >
-                      <span>🔄</span>
-                      <span>Retake Photo</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="px-4 py-3 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 mt-4">
-                    <svg className="animate-spin h-4 w-4 text-indigo-700" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Uploading photo...</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Hidden Canvas */}
-            <canvas ref={canvasRef} className="hidden" />
+          <div className="bg-white rounded-2xl p-8 border border-slate-200/60 shadow-xl shadow-slate-100/50 text-center space-y-4 animate-fade-in">
+            <div className="text-5xl">✅</div>
+            <h2 className="text-2xl font-bold text-slate-900">Submission Complete</h2>
+            <p className="text-slate-500 leading-relaxed text-sm">
+              Your geo-tagged photo has been successfully submitted. Duplicate submissions from this device are restricted. Thank you!
+            </p>
           </div>
         </main>
-
         <footer className="w-full bg-white border-t border-slate-200/80 py-6 text-center text-xs text-slate-500 mt-auto shadow-xs">
           <div>Developed and Maintained by</div>
           <div className="font-bold text-slate-800 mt-1">DoIT&C Block Jayal, Nagaur</div>
@@ -1032,68 +864,150 @@ export default function App() {
     );
   }
 
-  // ==========================================
-  // RENDER LANDING PORTAL ROUTE (Default)
-  // ==========================================
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
-      <header className="w-full bg-white border-b border-slate-200/80 py-6 text-center shadow-xs">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Geo Tag Jayal</h1>
-        <p className="text-xs text-slate-500 mt-1 font-medium">Block Jayal Solutions Portal</p>
+      <header className="w-full bg-white border-b border-slate-200/80 py-5 px-6 flex items-center shadow-xs">
+        <button 
+          onClick={() => window.location.href = '../'} 
+          className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer mr-auto"
+        >
+          ← Portal
+        </button>
+        <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">BharatNET Geo-Tag</h1>
       </header>
 
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-12 flex flex-col justify-center">
-        <div className="text-center space-y-3 mb-10">
-          <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-900 tracking-tight">
-            Integrated Solutions Portal
-          </h2>
-          <p className="text-slate-500 max-w-md mx-auto text-sm">
-            Select an active utility from the list below to complete inspections or access dashboard management consoles.
-          </p>
-        </div>
+      <main className="flex-1 w-full max-w-md mx-auto px-4 py-8 flex flex-col justify-center">
+        <div className="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-xl shadow-slate-100/50 space-y-5 animate-fade-in">
+          {/* Form inputs */}
+          <div>
+            <label htmlFor="gpSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gram Panchayat (GP)</label>
+            <select
+              id="gpSelect"
+              value={gp}
+              onChange={(e) => setGp(e.target.value)}
+              disabled={cameraActive || !!previewUrl}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="">-- Select Gram Panchayat --</option>
+              {GP_OPTIONS.map((opt) => {
+                const isSubmitted = existingGps.has(opt.toLowerCase().trim());
+                return (
+                  <option key={opt} value={opt} disabled={isSubmitted}>
+                    {opt} {isSubmitted ? '🔒 (Submitted)' : ''}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full">
-          {/* Solution 1: BharatNET GeoTag */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group">
-            <div className="space-y-3">
-              <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                🌐
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panchayat Samiti (PS)</label>
+            <input 
+              type="text" 
+              value={ps} 
+              readOnly 
+              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none" 
+            />
+          </div>
+
+          {/* Action buttons / stream */}
+          {!cameraActive && !previewUrl && (
+            <button 
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-65 disabled:cursor-not-allowed disabled:shadow-none" 
+              onClick={startCameraAndLocation}
+              disabled={isLoading || isGpAlreadySubmitted}
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Accessing Camera & GPS...</span>
+                </>
+              ) : isGpAlreadySubmitted ? (
+                '⚠️ GP Already Submitted'
+              ) : (
+                <>
+                  <span className="text-lg">📷</span>
+                  <span>Start Camera</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {cameraActive && (
+            <div className="space-y-4 animate-fade-in text-center">
+              <div className="relative rounded-2xl overflow-hidden bg-black border border-slate-800 shadow-inner">
+                <video ref={videoRef} autoPlay playsInline muted className="w-full aspect-[4/3] object-cover" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">BharatNET GeoTag</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">
-                Automated high-precision camera capture tool with GPS EXIF embedding for audits of Gram Panchayat BharatNET broadband connections.
-              </p>
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
               <button 
-                onClick={() => navigateTo('/bharatnet')}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-xs shadow-md shadow-indigo-200 hover:shadow-lg transition-all duration-200 text-center cursor-pointer"
+                className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl shadow-md shadow-rose-200 hover:shadow-lg hover:shadow-rose-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
+                onClick={takePhoto}
               >
-                Launch Utility 🚀
-              </button>
-              <button 
-                onClick={() => navigateTo('/bharatnet/admin')}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs text-center transition-colors cursor-pointer"
-              >
-                Admin Console 🔑
+                <span>📸</span>
+                <span>Take Photo</span>
               </button>
             </div>
-          </div>
+          )}
 
-          {/* Placeholder Solution 2: Future Expansion */}
-          <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-6 flex flex-col justify-center items-center text-center opacity-70 group">
-            <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-2xl mb-3">
-              🔒
+          {/* Status Display */}
+          {status.text && (
+            <div className={`px-4 py-3 rounded-xl text-xs font-semibold text-center mt-4 border ${
+              status.type === 'primary' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+              status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+              status.type === 'danger' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+              'bg-slate-100 text-slate-600 border-slate-200'
+            }`}>
+              {status.text}
             </div>
-            <h3 className="text-base font-bold text-slate-500">e-Mitra GeoTag</h3>
-            <p className="text-slate-400 text-xs max-w-xs mt-1 leading-relaxed">
-              Future integration module for tracking local e-Mitra kiosks registration and active node setups.
-            </p>
-            <span className="mt-4 px-2.5 py-0.5 bg-slate-200 text-slate-600 rounded-full text-[10px] font-semibold uppercase tracking-wider">
-              Coming Soon
-            </span>
-          </div>
+          )}
+
+          {/* Block Warning for duplicate GP */}
+          {isGpAlreadySubmitted && !previewUrl && !cameraActive && (
+            <div className="px-4 py-3 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl text-xs font-semibold text-center mt-4">
+              ⚠️ A photo has already been submitted for this Gram Panchayat. Duplicate submissions are not allowed.
+            </div>
+          )}
+
+          {/* Photo Preview & Retake / Submit workflow */}
+          {previewUrl && (
+            <div className="space-y-4 animate-scale-in text-center">
+              <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-50">
+                <img src={previewUrl} alt="Stamped Preview" className="w-full aspect-[4/3] object-cover" />
+              </div>
+              
+              {!isUploading ? (
+                <div className="flex flex-col gap-3">
+                  <button 
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
+                    onClick={uploadToDropbox}
+                  >
+                    <span>📤</span>
+                    <span>Submit</span>
+                  </button>
+                  <button 
+                    className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
+                    onClick={startCameraAndLocation}
+                  >
+                    <span>🔄</span>
+                    <span>Retake Photo</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="px-4 py-3 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 mt-4">
+                  <svg className="animate-spin h-4 w-4 text-indigo-700" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Uploading photo...</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Hidden Canvas */}
+          <canvas ref={canvasRef} className="hidden" />
         </div>
       </main>
 
