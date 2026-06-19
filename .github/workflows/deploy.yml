@@ -41,7 +41,9 @@ jobs:
           VITE_DROPBOX_REFRESH_TOKEN: ${{ secrets.VITE_DROPBOX_REFRESH_TOKEN }}
           VITE_DROPBOX_CLIENT_ID: ${{ secrets.VITE_DROPBOX_CLIENT_ID }}
           VITE_DROPBOX_CLIENT_SECRET: ${{ secrets.VITE_DROPBOX_CLIENT_SECRET }}
-        run: npm run build
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
