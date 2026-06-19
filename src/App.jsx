@@ -156,18 +156,19 @@ export default function App() {
     const fetchRefreshedToken = async () => {
       const refreshToken = import.meta.env.VITE_DROPBOX_REFRESH_TOKEN;
       const clientId = import.meta.env.VITE_DROPBOX_CLIENT_ID;
+      const clientSecret = import.meta.env.VITE_DROPBOX_CLIENT_SECRET;
 
-      if (refreshToken && clientId) {
+      if (refreshToken && clientId && clientSecret) {
         try {
-          const response = await fetch('https://api.dropbox.com/oauth2/token', {
+          const response = await fetch('https://corsproxy.io/?https://api.dropbox.com/oauth2/token', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': 'Basic ' + btoa(`${clientId}:${clientSecret}`)
             },
             body: new URLSearchParams({
               grant_type: 'refresh_token',
-              refresh_token: refreshToken,
-              client_id: clientId
+              refresh_token: refreshToken
             })
           });
           if (response.ok) {
