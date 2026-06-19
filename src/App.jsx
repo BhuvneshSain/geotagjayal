@@ -151,19 +151,57 @@ export default function App() {
     }
   };
 
-  // Load token from env, syncing/falling back to localStorage if needed
+  // Load token from env (using Refresh Token flow if configured)
   useEffect(() => {
-    const envToken = import.meta.env.VITE_DROPBOX_TOKEN;
-    const savedToken = localStorage.getItem('dropbox_token');
-    const activeToken = envToken || savedToken;
-    
-    if (activeToken) {
-      setDropboxToken(activeToken);
-      if (envToken && savedToken !== envToken) {
-        localStorage.setItem('dropbox_token', envToken);
+    const fetchRefreshedToken = async () => {
+      const refreshToken = import.meta.env.VITE_DROPBOX_REFRESH_TOKEN;
+      const clientId = import.meta.env.VITE_DROPBOX_CLIENT_ID;
+      const clientSecret = import.meta.env.VITE_DROPBOX_CLIENT_SECRET;
+
+      if (refreshToken && clientId && clientSecret) {
+        try {
+          const response = await fetch('https://api.dropbox.com/oauth2/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': 'Basic ' + btoa(`${clientId}:${clientSecret}`)
+            },
+            body: new URLSearchParams({
+              grant_type: 'refresh_token',
+              refresh_token: refreshToken
+            })
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.access_token) {
+              setDropboxToken(data.access_token);
+              localStorage.setItem('dropbox_token', data.access_token);
+              checkExistingSubmissions(data.access_token);
+              return;
+            }
+          } else {
+            console.error("Dropbox token refresh API returned error status:", response.status);
+          }
+        } catch (e) {
+          console.error("Failed to refresh Dropbox token:", e);
+        }
       }
-      checkExistingSubmissions(activeToken);
-    }
+
+      // Fallback to static token or localStorage
+      const envToken = import.meta.env.VITE_DROPBOX_TOKEN;
+      const savedToken = localStorage.getItem('dropbox_token');
+      const activeToken = envToken || savedToken;
+      
+      if (activeToken) {
+        setDropboxToken(activeToken);
+        if (envToken && savedToken !== envToken) {
+          localStorage.setItem('dropbox_token', envToken);
+        }
+        checkExistingSubmissions(activeToken);
+      }
+    };
+
+    fetchRefreshedToken();
   }, []);
 
   // Stop camera stream on unmount
