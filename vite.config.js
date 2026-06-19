@@ -11,7 +11,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        bharatnet: resolve(__dirname, 'bharatnet/index.html')
+        bharatnet: resolve(__dirname, 'bharatnet/index.html'),
+        bharatnet_admin: resolve(__dirname, 'bharatnet/admin/index.html')
       }
     }
   },
