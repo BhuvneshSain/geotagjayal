@@ -601,6 +601,50 @@ export default function App() {
     setAdminPassword('');
   };
 
+  // Confirmation-based Delete Handler
+  const handleDeleteSubmission = async (sub) => {
+    const confirmation = window.confirm(`Are you sure you want to delete the geo-tag submission for Gram Panchayat: ${sub.gp}?`);
+    if (!confirmation) return;
+
+    try {
+      setIsSubmissionsLoading(true);
+      setStatus({ text: 'Deleting submission...', type: 'primary' });
+      
+      const response = await fetch('https://api.dropboxapi.com/2/files/delete_v2', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${dropboxToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ path: sub.path })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error('Dropbox delete error:', errText);
+        throw new Error(errText || 'Delete operation failed');
+      }
+
+      // Update local existingGps list to unlock this GP for user re-submission
+      const gpNameLower = sub.gp.trim().toLowerCase();
+      setExistingGps(prev => {
+        const next = new Set(prev);
+        next.delete(gpNameLower);
+        return next;
+      });
+
+      // Refresh list
+      await fetchSubmissions();
+      alert(`Submission for ${sub.gp} was successfully deleted.`);
+    } catch (err) {
+      console.error(err);
+      alert(`Error deleting submission: ${err.message}`);
+    } finally {
+      setIsSubmissionsLoading(false);
+      setStatus({ text: '', type: '' });
+    }
+  };
+
   // FILTERED SUBMISSIONS BY SEARCH TERM
   const filteredSubmissions = submissions.filter((sub) =>
     sub.gp.toLowerCase().includes(searchTerm.toLowerCase())
@@ -677,6 +721,55 @@ export default function App() {
           ) : (
             /* ADMIN DASHBOARD VIEW */
             <div className="flex-1 flex flex-col space-y-6 animate-fade-in">
+              {/* INSIGHTS METRICS GRID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl shrink-0 animate-pulse">
+                    📸
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900 leading-tight">{submissions.length}</div>
+                    <div className="text-xs font-medium text-slate-500 mt-0.5">Total Geotag Audits</div>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shrink-0">
+                    ✅
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900 leading-tight">
+                      {existingGps.size} <span className="text-sm font-normal text-slate-400">/ {GP_OPTIONS.length}</span>
+                    </div>
+                    <div className="text-xs font-medium text-slate-500 mt-0.5">Active GPs Done</div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl shrink-0">
+                    ⏳
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900 leading-tight">
+                      {Math.max(0, GP_OPTIONS.length - existingGps.size)}
+                    </div>
+                    <div className="text-xs font-medium text-slate-500 mt-0.5">Pending GP Audits</div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-4 overflow-hidden">
+                  <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl shrink-0">
+                    🕒
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-lg font-bold text-slate-900 leading-tight truncate">
+                      {submissions.length > 0 ? submissions[0].gp : 'N/A'}
+                    </div>
+                    <div className="text-xs font-medium text-slate-500 mt-1">Latest Audited GP</div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                 <div className="w-full sm:max-w-md">
                   <div className="relative">
@@ -726,81 +819,166 @@ export default function App() {
                   <p className="text-slate-500 font-medium mt-3">No geo-tag submissions found matching search criteria.</p>
                 </div>
               ) : (
-                /* RESPONSIVE DATA TABLE */
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fade-in">
-                  <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full border-collapse text-left">
-                      <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200">
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Gram Panchayat (GP)</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Panchayat Samiti (PS)</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Stamped Photo</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">GPS Coordinates</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
-                          <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {filteredSubmissions.map((sub) => (
-                          <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-6 py-4.5 whitespace-nowrap">
-                              <div className="font-semibold text-slate-900 text-sm">{sub.gp}</div>
-                            </td>
-                            <td className="px-6 py-4.5 whitespace-nowrap">
-                              <div className="text-slate-500 text-sm">Jayal</div>
-                            </td>
-                            <td className="px-6 py-4.5 whitespace-nowrap">
-                              <div 
-                                className="w-20 h-15 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner cursor-zoom-in relative group"
-                                onClick={() => sub.imageUrl && setSelectedImage(sub.imageUrl)}
-                              >
-                                {sub.imageUrl ? (
-                                  <>
-                                    <img src={sub.imageUrl} alt={sub.gp} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                      <span className="text-white text-xs">🔍</span>
-                                    </div>
-                                  </>
-                                ) : sub.imageError ? (
-                                  <div className="w-full h-full flex flex-col items-center justify-center p-1 text-[9px] text-center text-rose-500 font-medium leading-tight">
-                                    <span>⚠️ Preview</span>
-                                    <span className="text-[7.5px] text-slate-400">Unavailable</span>
-                                  </div>
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <svg className="animate-spin h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4.5 whitespace-nowrap">
-                              <div className="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-md px-2 py-1 inline-block">
-                                {sub.lat}, {sub.lon}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4.5 whitespace-nowrap">
-                              <div className="text-slate-500 text-sm">{sub.time}</div>
-                            </td>
-                            <td className="px-6 py-4.5 whitespace-nowrap text-right">
-                              <a
-                                href={`https://www.google.com/maps?q=${sub.lat},${sub.lon}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                              >
-                                <span>🗺️</span>
-                                <span>View Map</span>
-                              </a>
-                            </td>
+                <>
+                  {/* DESKTOP TABLE VIEW */}
+                  <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fade-in">
+                    <div className="overflow-x-auto custom-scrollbar">
+                      <table className="w-full border-collapse text-left">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">#</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Gram Panchayat (GP)</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Panchayat Samiti (PS)</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Stamped Photo</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">GPS Coordinates</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredSubmissions.map((sub, idx) => (
+                            <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-6 py-4.5 whitespace-nowrap text-xs font-bold text-slate-400">
+                                {idx + 1}
+                              </td>
+                              <td className="px-6 py-4.5 whitespace-nowrap">
+                                <div className="font-semibold text-slate-900 text-sm">{sub.gp}</div>
+                              </td>
+                              <td className="px-6 py-4.5 whitespace-nowrap">
+                                <div className="text-slate-500 text-sm">Jayal</div>
+                              </td>
+                              <td className="px-6 py-4.5 whitespace-nowrap">
+                                <div 
+                                  className="w-20 h-15 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner cursor-zoom-in relative group"
+                                  onClick={() => sub.imageUrl && setSelectedImage(sub.imageUrl)}
+                                >
+                                  {sub.imageUrl ? (
+                                    <>
+                                      <img src={sub.imageUrl} alt={sub.gp} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                      <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span className="text-white text-xs">🔍</span>
+                                      </div>
+                                    </>
+                                  ) : sub.imageError ? (
+                                    <div className="w-full h-full flex flex-col items-center justify-center p-1 text-[9px] text-center text-rose-500 font-medium leading-tight">
+                                      <span>⚠️ Preview</span>
+                                      <span className="text-[7.5px] text-slate-400">Unavailable</span>
+                                    </div>
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <svg className="animate-spin h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4.5 whitespace-nowrap">
+                                <div className="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-md px-2 py-1 inline-block">
+                                  {sub.lat}, {sub.lon}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4.5 whitespace-nowrap">
+                                <div className="text-slate-500 text-sm">{sub.time}</div>
+                              </td>
+                              <td className="px-6 py-4.5 whitespace-nowrap text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <a
+                                    href={`https://www.google.com/maps?q=${sub.lat},${sub.lon}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 text-xs font-semibold rounded-lg transition-colors cursor-pointer border border-indigo-100"
+                                  >
+                                    <span>🗺️</span>
+                                    <span>View Map</span>
+                                  </a>
+                                  <button
+                                    onClick={() => handleDeleteSubmission(sub)}
+                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer border border-rose-100"
+                                  >
+                                    <span>🗑️</span>
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
+
+                  {/* MOBILE CARD VIEW */}
+                  <div className="block md:hidden space-y-4">
+                    {filteredSubmissions.map((sub, idx) => (
+                      <div key={sub.id} className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs space-y-4 hover:shadow-sm transition-shadow">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-500 bg-slate-100 rounded-md px-2 py-1 leading-none">
+                              #{idx + 1}
+                            </span>
+                            <h4 className="font-bold text-slate-900 text-base">{sub.gp}</h4>
+                          </div>
+                          <span className="text-xs text-slate-500 font-medium">Jayal</span>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <div 
+                            className="w-24 h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner shrink-0 cursor-zoom-in relative group"
+                            onClick={() => sub.imageUrl && setSelectedImage(sub.imageUrl)}
+                          >
+                            {sub.imageUrl ? (
+                              <img src={sub.imageUrl} alt={sub.gp} className="w-full h-full object-cover" />
+                            ) : sub.imageError ? (
+                              <div className="w-full h-full flex flex-col items-center justify-center p-1 text-[9px] text-center text-rose-500 font-medium leading-tight">
+                                <span>⚠️ Preview</span>
+                                <span className="text-[7.5px] text-slate-400">Unavailable</span>
+                              </div>
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg className="animate-spin h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 space-y-1.5 min-w-0">
+                            <div className="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-100 rounded-md px-2 py-1 inline-block truncate max-w-full">
+                              📍 {sub.lat}, {sub.lon}
+                            </div>
+                            <div className="text-slate-500 text-xs flex items-center gap-1">
+                              <span>📅</span>
+                              <span className="truncate">{sub.time}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2 border-t border-slate-100">
+                          <a
+                            href={`https://www.google.com/maps?q=${sub.lat},${sub.lon}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 inline-flex items-center justify-center gap-1 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer border border-indigo-100"
+                          >
+                            <span>🗺️</span>
+                            <span>View Map</span>
+                          </a>
+                          
+                          <button
+                            onClick={() => handleDeleteSubmission(sub)}
+                            className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1 border border-rose-100"
+                          >
+                            <span>🗑️</span>
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -886,7 +1064,7 @@ export default function App() {
               value={gp}
               onChange={(e) => setGp(e.target.value)}
               disabled={cameraActive || !!previewUrl}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="">-- Select Gram Panchayat --</option>
               {GP_OPTIONS.map((opt) => {
@@ -906,7 +1084,7 @@ export default function App() {
               type="text" 
               value={ps} 
               readOnly 
-              className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none" 
+              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none" 
             />
           </div>
 
