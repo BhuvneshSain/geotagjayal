@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as piexif from 'piexifjs';
 
 const GP_OPTIONS = [
-  "Anwliyasar", "Barnel", "Bhawala", "Bugarda", "Chhajoli", "Chhapra",
+  "Akora", "Anwliyasar", "Barnel", "Bhawala", "Bugarda", "Chhajoli", "Chhapra",
   "Deh", "Dharna", "Dhehari", "Dotina", "Dugastau", "Dugoli", "Gorau",
   "Gugriyali", "Jalniyasar", "Jayal", "Jhareli", "Jocheena", "Kamediya",
   "Kathoti", "Khatu Kallan", "Kherat", "Khinyala", "Manglod", "Peendiya",
@@ -35,14 +35,14 @@ const attachGpsMetadata = (dataUrl, lat, lon) => {
     gpsData[piexif.GPSIFD.GPSLatitude] = degToDmsRational(lat);
     gpsData[piexif.GPSIFD.GPSLongitudeRef] = lonRef;
     gpsData[piexif.GPSIFD.GPSLongitude] = degToDmsRational(lon);
-    
+
     // Add date/timestamp to GPS tags
     const now = new Date();
     gpsData[piexif.GPSIFD.GPSDateStamp] = now.toISOString().slice(0, 10).replace(/-/g, ':'); // YYYY:MM:DD
 
     const exifObj = { GPS: gpsData };
     const exifBytes = piexif.dump(exifObj);
-    
+
     return piexif.insert(exifBytes, dataUrl);
   } catch (error) {
     console.error("Error attaching GPS metadata:", error);
@@ -125,7 +125,7 @@ export default function App() {
       const files = data.entries.filter(
         (entry) => entry['.tag'] === 'file' && entry.name.endsWith('.jpg')
       );
-      
+
       const gps = new Set();
       files.forEach((file) => {
         const parts = file.name.split('_');
@@ -179,7 +179,7 @@ export default function App() {
       const envToken = import.meta.env.VITE_DROPBOX_TOKEN;
       const savedToken = localStorage.getItem('dropbox_token');
       const activeToken = envToken || savedToken;
-      
+
       if (activeToken) {
         setDropboxToken(activeToken);
         if (envToken && savedToken !== envToken) {
@@ -229,7 +229,7 @@ export default function App() {
       });
       if (!response.ok) throw new Error('Failed to retrieve file list from Dropbox');
       const data = await response.json();
-      
+
       const files = data.entries.filter(
         (entry) => entry['.tag'] === 'file' && entry.name.endsWith('.jpg')
       );
@@ -362,7 +362,7 @@ export default function App() {
       async (position) => {
         const lat = position.coords.latitude.toFixed(6);
         const lon = position.coords.longitude.toFixed(6);
-        
+
         setStatus({ text: 'Fetching address details...', type: 'primary' });
         const address = await fetchAddress(lat, lon);
 
@@ -413,7 +413,7 @@ export default function App() {
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
-      
+
       setCameraActive(true);
       setIsLoading(false);
       setStatus({ text: "Align camera and click 'Take Photo'.", type: 'muted' });
@@ -534,9 +534,9 @@ export default function App() {
       });
 
       const uploadUrl = `https://content.dropboxapi.com/2/files/upload` +
-         `?arg=${encodeURIComponent(argStr)}` +
-         `&authorization=${encodeURIComponent(`Bearer ${dropboxToken}`)}` +
-         `&reject_cors_preflight=true`;
+        `?arg=${encodeURIComponent(argStr)}` +
+        `&authorization=${encodeURIComponent(`Bearer ${dropboxToken}`)}` +
+        `&reject_cors_preflight=true`;
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
@@ -554,7 +554,7 @@ export default function App() {
 
       setStatus({ text: `Successfully uploaded ${fileName}!`, type: 'success' });
       localStorage.setItem('geotag_submitted', 'true');
-      
+
       // Update local set of submitted GPs
       const uploadedGp = gp.toLowerCase().trim();
       setExistingGps(prev => {
@@ -609,7 +609,7 @@ export default function App() {
     try {
       setIsSubmissionsLoading(true);
       setStatus({ text: 'Deleting submission...', type: 'primary' });
-      
+
       const response = await fetch('https://api.dropboxapi.com/2/files/delete_v2', {
         method: 'POST',
         headers: {
@@ -661,8 +661,8 @@ export default function App() {
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased animate-fade-in">
         <header className="w-full bg-white border-b border-slate-200/80 px-6 py-4 flex justify-between items-center shadow-xs">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => window.location.href = '../'} 
+            <button
+              onClick={() => window.location.href = '../'}
               className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
             >
               ← Back to Portal
@@ -673,7 +673,7 @@ export default function App() {
             </div>
           </div>
           {isAdminAuthenticated && (
-            <button 
+            <button
               className="px-3.5 py-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-700 font-semibold rounded-lg text-xs transition-all duration-200 flex items-center gap-1 cursor-pointer"
               onClick={handleAdminLogout}
             >
@@ -710,8 +710,8 @@ export default function App() {
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100 transition-all duration-200"
                   />
                 </div>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-200/80 transition-all duration-200 active:scale-[0.98] cursor-pointer"
                 >
                   Login to Dashboard
@@ -732,7 +732,7 @@ export default function App() {
                     <div className="text-xs font-medium text-slate-500 mt-0.5">Total Geotag Audits</div>
                   </div>
                 </div>
-                
+
                 <div className="bg-white rounded-2xl border border-slate-200/60 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-4">
                   <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shrink-0">
                     ✅
@@ -783,9 +783,9 @@ export default function App() {
                     />
                   </div>
                 </div>
-                <button 
+                <button
                   className="w-full sm:w-auto px-5 py-2.5 bg-slate-800 hover:bg-slate-950 text-white font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                  onClick={fetchSubmissions} 
+                  onClick={fetchSubmissions}
                   disabled={isSubmissionsLoading}
                 >
                   {isSubmissionsLoading ? (
@@ -848,7 +848,7 @@ export default function App() {
                                 <div className="text-slate-500 text-sm">Jayal</div>
                               </td>
                               <td className="px-6 py-4.5 whitespace-nowrap">
-                                <div 
+                                <div
                                   className="w-20 h-15 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner cursor-zoom-in relative group"
                                   onClick={() => sub.imageUrl && setSelectedImage(sub.imageUrl)}
                                 >
@@ -924,7 +924,7 @@ export default function App() {
                         </div>
 
                         <div className="flex gap-4">
-                          <div 
+                          <div
                             className="w-24 h-20 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 shadow-inner shrink-0 cursor-zoom-in relative group"
                             onClick={() => sub.imageUrl && setSelectedImage(sub.imageUrl)}
                           >
@@ -966,7 +966,7 @@ export default function App() {
                             <span>🗺️</span>
                             <span>View Map</span>
                           </a>
-                          
+
                           <button
                             onClick={() => handleDeleteSubmission(sub)}
                             className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1 border border-rose-100"
@@ -986,14 +986,14 @@ export default function App() {
 
         {/* IMAGE ZOOM LIGHTBOX */}
         {selectedImage && (
-          <div 
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 cursor-zoom-out animate-fade-in" 
+          <div
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 cursor-zoom-out animate-fade-in"
             onClick={() => setSelectedImage(null)}
           >
             <div className="relative max-w-4xl w-full flex items-center justify-center animate-scale-in">
               <img src={selectedImage} alt="Expanded Stamped Preview" className="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border border-slate-800" />
-              <button 
-                className="absolute -top-12 right-0 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition-colors cursor-pointer" 
+              <button
+                className="absolute -top-12 right-0 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl transition-colors cursor-pointer"
                 onClick={() => setSelectedImage(null)}
               >
                 ✕
@@ -1017,8 +1017,8 @@ export default function App() {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
         <header className="w-full bg-white border-b border-slate-200/80 py-5 px-6 flex items-center shadow-xs">
-          <button 
-            onClick={() => window.location.href = '../'} 
+          <button
+            onClick={() => window.location.href = '../'}
             className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer mr-auto"
           >
             ← Portal
@@ -1045,8 +1045,8 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
       <header className="w-full bg-white border-b border-slate-200/80 py-5 px-6 flex items-center shadow-xs">
-        <button 
-          onClick={() => window.location.href = '../'} 
+        <button
+          onClick={() => window.location.href = '../'}
           className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer mr-auto"
         >
           ← Portal
@@ -1080,18 +1080,18 @@ export default function App() {
 
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panchayat Samiti (PS)</label>
-            <input 
-              type="text" 
-              value={ps} 
-              readOnly 
-              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none" 
+            <input
+              type="text"
+              value={ps}
+              readOnly
+              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none"
             />
           </div>
 
           {/* Action buttons / stream */}
           {!cameraActive && !previewUrl && (
-            <button 
-              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-65 disabled:cursor-not-allowed disabled:shadow-none" 
+            <button
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-65 disabled:cursor-not-allowed disabled:shadow-none"
               onClick={startCameraAndLocation}
               disabled={isLoading || isGpAlreadySubmitted}
             >
@@ -1119,8 +1119,8 @@ export default function App() {
               <div className="relative rounded-2xl overflow-hidden bg-black border border-slate-800 shadow-inner">
                 <video ref={videoRef} autoPlay playsInline muted className="w-full aspect-[4/3] object-cover" />
               </div>
-              <button 
-                className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl shadow-md shadow-rose-200 hover:shadow-lg hover:shadow-rose-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
+              <button
+                className="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl shadow-md shadow-rose-200 hover:shadow-lg hover:shadow-rose-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                 onClick={takePhoto}
               >
                 <span>📸</span>
@@ -1131,12 +1131,11 @@ export default function App() {
 
           {/* Status Display */}
           {status.text && (
-            <div className={`px-4 py-3 rounded-xl text-xs font-semibold text-center mt-4 border ${
-              status.type === 'primary' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
-              status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-              status.type === 'danger' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-              'bg-slate-100 text-slate-600 border-slate-200'
-            }`}>
+            <div className={`px-4 py-3 rounded-xl text-xs font-semibold text-center mt-4 border ${status.type === 'primary' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                  status.type === 'danger' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                    'bg-slate-100 text-slate-600 border-slate-200'
+              }`}>
               {status.text}
             </div>
           )}
@@ -1154,18 +1153,18 @@ export default function App() {
               <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-50">
                 <img src={previewUrl} alt="Stamped Preview" className="w-full aspect-[4/3] object-cover" />
               </div>
-              
+
               {!isUploading ? (
                 <div className="flex flex-col gap-3">
-                  <button 
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
+                  <button
+                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md shadow-emerald-200 hover:shadow-lg hover:shadow-emerald-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                     onClick={uploadToDropbox}
                   >
                     <span>📤</span>
                     <span>Submit</span>
                   </button>
-                  <button 
-                    className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer" 
+                  <button
+                    className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                     onClick={startCameraAndLocation}
                   >
                     <span>🔄</span>
