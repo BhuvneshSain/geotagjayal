@@ -92,7 +92,7 @@ export default function App() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ path: '' })
+        body: JSON.stringify({ path: '/bharatnet' })
       });
       if (!response.ok) return;
       const data = await response.json();
@@ -384,7 +384,7 @@ export default function App() {
 
     try {
       const argStr = JSON.stringify({
-        path: `/${fileName}`,
+        path: `/bharatnet/${fileName}`,
         mode: 'overwrite',
         autorename: false,
         mute: false

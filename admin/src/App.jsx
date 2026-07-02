@@ -134,7 +134,7 @@ export default function App() {
   const fetchSubmissions = async () => {
     setIsSubmissionsLoading(true);
     setSubmissions([]);
-    const path = activeProject === 'pm_visit' ? '/pm_visit' : '';
+    const path = activeProject === 'pm_visit' ? '/pm_visit' : '/bharatnet';
 
     try {
       const response = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
