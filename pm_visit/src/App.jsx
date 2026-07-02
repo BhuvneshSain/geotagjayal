@@ -2,15 +2,45 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as piexif from 'piexifjs';
 
 const GP_OPTIONS = [
-  "Akora", "Anwaliyasar", "Barnel", "Bhawla", "Bugarda", "Chhajoli", "Chhapra",
-  "Deh", "Dharna", "Dhehari", "Dotina", "Dugastau", "Dugoli", "Gorau",
-  "Gugriyali", "Jalniyasar", "Jayal", "Jhareli", "Jocheena", "Kamediya",
-  "Kathoti", "Khatoo Kalan", "Kherat", "Khinyala", "Manglod", "Peendiya",
-  "Phardod", "Rajod", "Ratanga", "Rohina", "Rotoo", "Sandeela", "Somna",
-  "Soneli", "Surpaliya", "Tangla", "Tanwara", "Tarnau"
+  { gp: "AKORA", kiosk: "HARI RAM KULIYA", code: "K11263956" },
+  { gp: "ANWALIYASAR", kiosk: "JASRAM", code: "K112173050" },
+  { gp: "BARNEL", kiosk: "RAKESH MEGHWAL", code: "K112180743" },
+  { gp: "BHAWLA", kiosk: "ARJUN RAM SEWADA", code: "K112105465" },
+  { gp: "BUGARDA", kiosk: "SURESH KURI", code: "K112107601" },
+  { gp: "CHHAJOLI", kiosk: "No Kiosk", code: "N/A" },
+  { gp: "CHHAPRA", kiosk: "RAMPRASAD", code: "K112183183" },
+  { gp: "DEH", kiosk: "MOOLCHAND CHANWARIYA", code: "K112334566" },
+  { gp: "DHARNA", kiosk: "SOBHA RAM", code: "K112143755" },
+  { gp: "DHEHARI", kiosk: "JITU RAM", code: "K112102197" },
+  { gp: "DOTINA", kiosk: "PREMA RAM", code: "K112141833" },
+  { gp: "DUGASTAU", kiosk: "No Kiosk", code: "N/A" },
+  { gp: "DUGOLI", kiosk: "MANIRAM BASAT", code: "K112123330" },
+  { gp: "GORAU", kiosk: "JAY PRAKASH", code: "K112105449" },
+  { gp: "GUGRIYALI", kiosk: "RAJESH REWAR", code: "K112233763" },
+  { gp: "JALNIYASAR", kiosk: "PUKHA RAJ", code: "K112280104" },
+  { gp: "JHARELI", kiosk: "KANA RAM", code: "K112115324" },
+  { gp: "JOCHEENA", kiosk: "OM PRAKASH SINWAR", code: "K112105441" },
+  { gp: "KAMEDIYA", kiosk: "DINESH MEHRA", code: "K24044390" },
+  { gp: "KATHOTI", kiosk: "SURESH SANKHALA", code: "K112113630" },
+  { gp: "KHATOO KALAN", kiosk: "HANUMAN RAM", code: "K112105467" },
+  { gp: "KHERAT", kiosk: "LOON SINGH", code: "K24024052" },
+  { gp: "KHINYALA", kiosk: "DINESH KUMAR RATTAWA", code: "K112105419" },
+  { gp: "MANGLOD", kiosk: "ARJUN RAM", code: "K112321040" },
+  { gp: "PEENDIYA", kiosk: "SHER SINGH", code: "K112169176" },
+  { gp: "PHARDOD", kiosk: "RAJU BIDIYASAR", code: "K112117976" },
+  { gp: "RAJOD", kiosk: "NARENDRA REWAR", code: "K112102201" },
+  { gp: "RATANGA", kiosk: "DILIP BHAKAR", code: "K112102209" },
+  { gp: "ROHINA", kiosk: "VIKRAM TIWARI", code: "K112334441" },
+  { gp: "ROTOO", kiosk: "JAY PRAKASH", code: "K112114524" },
+  { gp: "SANDEELA", kiosk: "HANUMAN PURI", code: "K112105450" },
+  { gp: "SOMNA", kiosk: "SABIR KHILJI", code: "K11261364" },
+  { gp: "SONELI", kiosk: "PREMA RAM BHAMBU", code: "K24022787" },
+  { gp: "SURPALIYA", kiosk: "HARI RAM KHICHAR", code: "K112105428" },
+  { gp: "TANGLA", kiosk: "SHYAM SUNDER SHARMA", code: "K112105452" },
+  { gp: "TANWARA", kiosk: "PANKAJ SHARMA", code: "K112218337" },
+  { gp: "TARNAU", kiosk: "NAWAL KISHOR", code: "K112149275" }
 ];
 
-// Helper to convert decimal degrees to EXIF rational DMS format
 const degToDmsRational = (deg) => {
   const absolute = Math.abs(deg);
   const degrees = Math.floor(absolute);
@@ -24,7 +54,6 @@ const degToDmsRational = (deg) => {
   ];
 };
 
-// Helper to attach GPS metadata to JPEG base64 DataURL
 const attachGpsMetadata = (dataUrl, lat, lon) => {
   try {
     const latRef = lat >= 0 ? 'N' : 'S';
@@ -36,9 +65,8 @@ const attachGpsMetadata = (dataUrl, lat, lon) => {
     gpsData[piexif.GPSIFD.GPSLongitudeRef] = lonRef;
     gpsData[piexif.GPSIFD.GPSLongitude] = degToDmsRational(lon);
 
-    // Add date/timestamp to GPS tags
     const now = new Date();
-    gpsData[piexif.GPSIFD.GPSDateStamp] = now.toISOString().slice(0, 10).replace(/-/g, ':'); // YYYY:MM:DD
+    gpsData[piexif.GPSIFD.GPSDateStamp] = now.toISOString().slice(0, 10).replace(/-/g, ':');
 
     const exifObj = { GPS: gpsData };
     const exifBytes = piexif.dump(exifObj);
@@ -50,7 +78,6 @@ const attachGpsMetadata = (dataUrl, lat, lon) => {
   }
 };
 
-// Helper to convert Base64 DataURL to Blob
 const dataUrlToBlob = (dataUrl) => {
   const arr = dataUrl.split(',');
   const mime = arr[0].match(/:(.*?);/)[1];
@@ -64,25 +91,27 @@ const dataUrlToBlob = (dataUrl) => {
 };
 
 export default function App() {
-  // Main Camera states
   const [gp, setGp] = useState('');
-  const [ps] = useState('Jayal');
   const [dropboxToken, setDropboxToken] = useState('');
-  const [status, setStatus] = useState({ text: '', type: '' }); // type: 'primary' | 'success' | 'danger' | 'muted'
+  const [status, setStatus] = useState({ text: '', type: '' });
   const [cameraActive, setCameraActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const [imageBlob, setImageBlob] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [alreadySubmitted, setAlreadySubmitted] = useState(false);
-  const [existingGps, setExistingGps] = useState(new Set()); // Tracks GPs already uploaded in Dropbox
+  const [alreadySubmitted, setAlreadySubmitted] = useState(
+    localStorage.getItem('pm_visit_submitted') === 'true'
+  );
+  const [existingGps, setExistingGps] = useState(new Set());
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const locationRef = useRef({ lat: null, lon: null, address: '' });
 
-  // Query Dropbox folder to find existing GP submissions
+  // Get matching kiosk info
+  const selectedGpData = GP_OPTIONS.find((opt) => opt.gp === gp) || { kiosk: '', code: '' };
+
   const checkExistingSubmissions = async (token) => {
     if (!token) return;
     try {
@@ -92,7 +121,7 @@ export default function App() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ path: '' })
+        body: JSON.stringify({ path: '/pm_visit' })
       });
       if (!response.ok) return;
       const data = await response.json();
@@ -109,11 +138,10 @@ export default function App() {
       });
       setExistingGps(gps);
     } catch (e) {
-      console.error("Error checking existing GP submissions:", e);
+      console.error("Error checking existing submissions:", e);
     }
   };
 
-  // Load token from env (using Refresh Token flow if configured)
   useEffect(() => {
     const fetchRefreshedToken = async () => {
       const refreshToken = import.meta.env.VITE_DROPBOX_REFRESH_TOKEN;
@@ -141,24 +169,18 @@ export default function App() {
               checkExistingSubmissions(data.access_token);
               return;
             }
-          } else {
-            console.error("Dropbox token refresh API returned error status:", response.status);
           }
         } catch (e) {
-          console.error("Failed to refresh Dropbox token:", e);
+          console.error("Failed to refresh token:", e);
         }
       }
 
-      // Fallback to static token or localStorage
       const envToken = import.meta.env.VITE_DROPBOX_TOKEN;
       const savedToken = localStorage.getItem('dropbox_token');
       const activeToken = envToken || savedToken;
 
       if (activeToken) {
         setDropboxToken(activeToken);
-        if (envToken && savedToken !== envToken) {
-          localStorage.setItem('dropbox_token', envToken);
-        }
         checkExistingSubmissions(activeToken);
       }
     };
@@ -166,7 +188,6 @@ export default function App() {
     fetchRefreshedToken();
   }, []);
 
-  // Stop camera stream on unmount
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -175,14 +196,12 @@ export default function App() {
     };
   }, []);
 
-  // Bind stream when video element is rendered
   useEffect(() => {
     if (cameraActive && streamRef.current && videoRef.current) {
       videoRef.current.srcObject = streamRef.current;
     }
   }, [cameraActive]);
 
-  // Stop camera stream
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -191,14 +210,12 @@ export default function App() {
     setCameraActive(false);
   };
 
-  // Start Camera and Geolocation
   const startCameraAndLocation = () => {
     if (!gp) {
       alert('Please select a Gram Panchayat first.');
       return;
     }
 
-    // Double check that GP hasn't been submitted in background
     if (existingGps.has(gp.toLowerCase().trim())) {
       alert('A submission already exists for this Gram Panchayat.');
       return;
@@ -223,9 +240,7 @@ export default function App() {
         setStatus({ text: 'Fetching address details...', type: 'primary' });
         const address = await fetchAddress(lat, lon);
 
-        // Save location details for stamping
         locationRef.current = { lat, lon, address };
-
         initCamera();
       },
       (error) => {
@@ -236,14 +251,13 @@ export default function App() {
     );
   };
 
-  // Fetch address from OSM Nominatim with User-Agent header
   const fetchAddress = async (lat, lon) => {
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
         {
           headers: {
-            'User-Agent': 'eMitra-GeoTag-Camera/1.0'
+            'User-Agent': 'PM-Visit-Webcast-Camera/1.0'
           }
         }
       );
@@ -254,7 +268,6 @@ export default function App() {
     }
   };
 
-  // Init Webcam stream
   const initCamera = async () => {
     try {
       if (streamRef.current) stopCamera();
@@ -273,7 +286,7 @@ export default function App() {
 
       setCameraActive(true);
       setIsLoading(false);
-      setStatus({ text: "Align camera and click 'Take Photo'.", type: 'muted' });
+      setStatus({ text: "Align camera to capture crowd attending the webcast, then click 'Take Photo'.", type: 'muted' });
     } catch (err) {
       console.error(err);
       setStatus({ text: 'Failed to access camera. Please check permissions.', type: 'danger' });
@@ -281,7 +294,6 @@ export default function App() {
     }
   };
 
-  // Text wrap utility
   const wrapText = (ctx, text, maxWidth) => {
     const words = text.split(' ');
     let line = '';
@@ -302,7 +314,6 @@ export default function App() {
     return lines;
   };
 
-  // Take photo & Stamp Canvas
   const takePhoto = () => {
     if (!streamRef.current || !videoRef.current || !canvasRef.current) return;
 
@@ -316,10 +327,8 @@ export default function App() {
     canvas.width = videoWidth;
     canvas.height = videoHeight;
 
-    // Draw frame
     ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
 
-    // Font styling
     const fontSize = Math.max(16, videoWidth * 0.03);
     ctx.font = `bold ${fontSize}px Arial`;
     ctx.fillStyle = 'white';
@@ -327,19 +336,17 @@ export default function App() {
     ctx.lineWidth = 4;
 
     const { lat, lon, address } = locationRef.current;
-    const line1 = `GP: ${gp} | PS: ${ps}`;
-    const line2 = `Lat: ${lat || 'N/A'}, Long: ${lon || 'N/A'}`;
+    const line1 = `PM Live Webcast | GP: ${gp} | Kiosk: ${selectedGpData.kiosk}`;
+    const line2 = `Kiosk Code: ${selectedGpData.code} | Lat: ${lat || 'N/A'}, Long: ${lon || 'N/A'}`;
     const maxTextWidth = videoWidth - 40;
     const wrappedAddress = wrapText(ctx, `Address: ${address || 'N/A'}`, maxTextWidth);
     const allLines = [line1, line2, ...wrappedAddress];
 
-    // Overlay Background Bar
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     const padding = 15;
     const bgHeight = allLines.length * fontSize * 1.4 + padding * 2;
     ctx.fillRect(0, videoHeight - bgHeight, videoWidth, bgHeight);
 
-    // Draw Text lines
     ctx.fillStyle = 'white';
     let startY = videoHeight - bgHeight + fontSize + padding;
     allLines.forEach((line) => {
@@ -348,16 +355,13 @@ export default function App() {
       startY += fontSize * 1.4;
     });
 
-    // Export canvas to JPEG Data URL at 85% compression quality
     const jpegDataUrl = canvas.toDataURL('image/jpeg', 0.85);
 
-    // Attach GPS EXIF Metadata if coordinates are available
     let finalDataUrl = jpegDataUrl;
     if (lat && lon) {
       finalDataUrl = attachGpsMetadata(jpegDataUrl, parseFloat(lat), parseFloat(lon));
     }
 
-    // Convert Data URL back to Blob for uploading and local preview
     const blob = dataUrlToBlob(finalDataUrl);
     setImageBlob(blob);
     setPreviewUrl(finalDataUrl);
@@ -366,7 +370,6 @@ export default function App() {
     setStatus({ text: '', type: '' });
   };
 
-  // Cloud upload
   const uploadToDropbox = async () => {
     if (!dropboxToken) {
       alert("Missing configuration. Access Token could not be loaded.");
@@ -377,14 +380,13 @@ export default function App() {
     setIsUploading(true);
     setStatus({ text: 'Uploading photo...', type: 'primary' });
 
-    // Generate filename with GP, Lat, Lon, and timestamp to prevent overwriting and allow parsing
     const { lat, lon } = locationRef.current;
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
     const fileName = `${gp}_${lat || '0'}_${lon || '0'}_${timestamp}.jpg`;
 
     try {
       const argStr = JSON.stringify({
-        path: `/${fileName}`,
+        path: `/pm_visit/${fileName}`,
         mode: 'overwrite',
         autorename: false,
         mute: false
@@ -405,14 +407,12 @@ export default function App() {
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error("Dropbox upload error:", errText);
         throw new Error(errText || 'Upload failed');
       }
 
       setStatus({ text: `Successfully uploaded ${fileName}!`, type: 'success' });
-      localStorage.setItem('geotag_submitted', 'true');
+      localStorage.setItem('pm_visit_submitted', 'true');
 
-      // Update local set of submitted GPs
       const uploadedGp = gp.toLowerCase().trim();
       setExistingGps(prev => {
         const next = new Set(prev);
@@ -420,28 +420,22 @@ export default function App() {
         return next;
       });
 
-      // Clear preview states and reset GP dropdown after 3 seconds
       setTimeout(() => {
         setPreviewUrl('');
         setImageBlob(null);
         setGp('');
         setStatus({ text: '', type: '' });
         setIsUploading(false);
-        setAlreadySubmitted(true); // Lock this device
+        setAlreadySubmitted(true);
       }, 3000);
     } catch (err) {
-      console.error(err);
       setStatus({ text: `Upload Error: ${err.message}`, type: 'danger' });
       setIsUploading(false);
     }
   };
 
-  // Checks if currently selected GP already has a submission
   const isGpAlreadySubmitted = gp && existingGps.has(gp.toLowerCase().trim());
 
-  // ==========================================
-  // RENDER BHARATNET CAMERA ROUTE
-  // ==========================================
   if (alreadySubmitted) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans antialiased">
@@ -452,14 +446,14 @@ export default function App() {
           >
             ← Portal
           </button>
-          <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">BharatNET Geo-Tag</h1>
+          <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">Hon'ble PM Visit Webcast</h1>
         </header>
         <main className="flex-1 w-full max-w-md mx-auto px-4 py-8 flex flex-col justify-center">
           <div className="bg-white rounded-2xl p-8 border border-slate-200/60 shadow-xl shadow-slate-100/50 text-center space-y-4 animate-fade-in">
             <div className="text-5xl">✅</div>
             <h2 className="text-2xl font-bold text-slate-900">Submission Complete</h2>
             <p className="text-slate-500 leading-relaxed text-sm">
-              Your geo-tagged photo has been successfully submitted. Duplicate submissions from this device are restricted. Thank you!
+              Your geotagged photo of the webcast crowd has been successfully submitted. Duplicate submissions from this device are restricted. Thank you!
             </p>
           </div>
         </main>
@@ -480,12 +474,11 @@ export default function App() {
         >
           ← Portal
         </button>
-        <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">BharatNET Geo-Tag</h1>
+        <h1 className="text-base font-bold tracking-tight text-slate-900 mr-auto pr-10">Hon'ble PM Visit Webcast</h1>
       </header>
 
       <main className="flex-1 w-full max-w-md mx-auto px-4 py-8 flex flex-col justify-center">
         <div className="bg-white rounded-2xl p-6 border border-slate-200/60 shadow-xl shadow-slate-100/50 space-y-5 animate-fade-in">
-          {/* Form inputs */}
           <div>
             <label htmlFor="gpSelect" className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gram Panchayat (GP)</label>
             <select
@@ -497,10 +490,10 @@ export default function App() {
             >
               <option value="">-- Select Gram Panchayat --</option>
               {GP_OPTIONS.map((opt) => {
-                const isSubmitted = existingGps.has(opt.toLowerCase().trim());
+                const isSubmitted = existingGps.has(opt.gp.toLowerCase().trim());
                 return (
-                  <option key={opt} value={opt} disabled={isSubmitted}>
-                    {opt} {isSubmitted ? '🔒 (Submitted)' : ''}
+                  <option key={opt.gp} value={opt.gp} disabled={isSubmitted}>
+                    {opt.gp} {isSubmitted ? '🔒 (Submitted)' : ''}
                   </option>
                 );
               })}
@@ -508,16 +501,27 @@ export default function App() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Panchayat Samiti (PS)</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kiosk Name</label>
             <input
               type="text"
-              value={ps}
+              value={selectedGpData.kiosk}
               readOnly
-              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-100 border border-slate-200 rounded-xl text-slate-400 cursor-not-allowed focus:outline-none"
+              placeholder="Auto-filled BNRGSK Kiosk"
+              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-100 border border-slate-200 rounded-xl text-slate-600 cursor-not-allowed focus:outline-none font-medium placeholder-slate-400"
             />
           </div>
 
-          {/* Action buttons / stream */}
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Kiosk Code</label>
+            <input
+              type="text"
+              value={selectedGpData.code}
+              readOnly
+              placeholder="Auto-filled Code"
+              className="w-full px-4 py-3.5 min-h-[48px] bg-slate-100 border border-slate-200 rounded-xl text-slate-600 cursor-not-allowed focus:outline-none font-mono placeholder-slate-400"
+            />
+          </div>
+
           {!cameraActive && !previewUrl && (
             <button
               className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-200/80 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-65 disabled:cursor-not-allowed disabled:shadow-none"
@@ -553,12 +557,11 @@ export default function App() {
                 onClick={takePhoto}
               >
                 <span>📸</span>
-                <span>Take Photo</span>
+                <span>Take Photo of Crowd</span>
               </button>
             </div>
           )}
 
-          {/* Status Display */}
           {status.text && (
             <div className={`px-4 py-3 rounded-xl text-xs font-semibold text-center mt-4 border ${status.type === 'primary' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
                 status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
@@ -569,14 +572,12 @@ export default function App() {
             </div>
           )}
 
-          {/* Block Warning for duplicate GP */}
           {isGpAlreadySubmitted && !previewUrl && !cameraActive && (
             <div className="px-4 py-3 bg-rose-50 text-rose-700 border border-rose-100 rounded-xl text-xs font-semibold text-center mt-4">
               ⚠️ A photo has already been submitted for this Gram Panchayat. Duplicate submissions are not allowed.
             </div>
           )}
 
-          {/* Photo Preview & Retake / Submit workflow */}
           {previewUrl && (
             <div className="space-y-4 animate-scale-in text-center">
               <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-slate-50">
@@ -612,7 +613,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Hidden Canvas */}
           <canvas ref={canvasRef} className="hidden" />
         </div>
       </main>

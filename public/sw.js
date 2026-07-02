@@ -7,8 +7,10 @@ const PRE_CACHE_ASSETS = [
   '/geotagjayal/icon-512.png',
   '/geotagjayal/bharatnet/',
   '/geotagjayal/bharatnet/index.html',
-  '/geotagjayal/bharatnet/admin/',
-  '/geotagjayal/bharatnet/admin/index.html'
+  '/geotagjayal/admin/',
+  '/geotagjayal/admin/index.html',
+  '/geotagjayal/pm_visit/',
+  '/geotagjayal/pm_visit/index.html'
 ];
 
 // Install: pre-cache static application shell
