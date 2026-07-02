@@ -153,6 +153,12 @@ export default function App() {
         return;
       }
 
+      if (response.status === 401) {
+        setDropboxToken('');
+        localStorage.removeItem('dropbox_token');
+        throw new Error('Dropbox token is invalid or expired');
+      }
+
       if (!response.ok) throw new Error('Failed to retrieve file list');
       const data = await response.json();
 
