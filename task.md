@@ -11,3 +11,5 @@
 - `[x]` Clean up dead admin logic and views from the `bharatnet` camera subproject to optimize package size
 - `[x]` Align spelling discrepancies between BharatNET and PM Webcast GP name options (e.g. Khatoo Kalan, Bhawla, Tanwara, Anwaliyasar)
 - `[x]` Add missing fade-in and scale-in micro-animation stylesheets in `src/App.css`
+- `[x]` Force trigger build with GitHub Secrets configured
+
