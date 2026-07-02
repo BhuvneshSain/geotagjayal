@@ -103,6 +103,7 @@ export default function App() {
             const data = await response.json();
             if (data.access_token) {
               setDropboxToken(data.access_token);
+              localStorage.setItem('dropbox_token', data.access_token);
               return;
             }
           }
@@ -113,8 +114,10 @@ export default function App() {
 
       // Fallback
       const envToken = import.meta.env.VITE_DROPBOX_TOKEN;
-      if (envToken) {
-        setDropboxToken(envToken);
+      const savedToken = localStorage.getItem('dropbox_token');
+      const activeToken = envToken || savedToken;
+      if (activeToken) {
+        setDropboxToken(activeToken);
       }
     };
 
@@ -446,6 +449,42 @@ export default function App() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col space-y-6 animate-fade-in">
+            {/* Dropbox Config Alert Fallback */}
+            {!dropboxToken && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-800 space-y-3 shadow-xs animate-scale-in">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">⚠️</span>
+                  <h4 className="font-bold text-amber-900">Dropbox API Credentials Missing</h4>
+                </div>
+                <p className="text-xs leading-relaxed text-amber-700">
+                  No valid Dropbox Access Token or Refresh Token was found in the environment configurations or local storage. Please input a temporary Dropbox Access Token (or a Refresh Token) to fetch the submissions:
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 items-stretch max-w-xl">
+                  <input
+                    type="password"
+                    placeholder="Paste Dropbox token here..."
+                    className="flex-1 px-4 py-2 bg-white border border-amber-300 rounded-xl text-slate-900 placeholder-slate-400 text-xs focus:outline-none focus:border-amber-500"
+                    id="manualTokenInput"
+                  />
+                  <button
+                    onClick={() => {
+                      const inputVal = document.getElementById('manualTokenInput')?.value?.trim();
+                      if (inputVal) {
+                        localStorage.setItem('dropbox_token', inputVal);
+                        setDropboxToken(inputVal);
+                        alert('Token saved to local storage! Reloading submissions...');
+                      } else {
+                        alert('Please enter a valid token string.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                  >
+                    Save & Load
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Project Selection Tabs */}
             <div className="flex bg-slate-200/60 p-1 rounded-xl w-fit">
               <button
